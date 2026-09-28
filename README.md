@@ -220,6 +220,14 @@ Ana sayfadaki **Dosyadan içe aktar** düğmesiyle kaynak platforma giriş yapma
 
 ## Vercel'e yayınlama
 
+**Komut satırından tek adımda:** Bir Vercel erişim anahtarı (<https://vercel.com/account/tokens>) oluşturup şunu çalıştırın. Betik projeyi oluşturur, `SESSION_SECRET` üretir, ortamda tanımlı platform anahtarlarını Vercel'e aktarır, üretime yayınlar ve eklenecek redirect URI'leri yazdırır:
+
+```bash
+VERCEL_TOKEN=... SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=... ./scripts/deploy-vercel.sh
+```
+
+**Panelden:**
+
 1. Kodu bir GitHub/GitLab/Bitbucket deposuna gönderin.
 2. <https://vercel.com/new> adresinde depoyu **Import** edin. Framework otomatik olarak **Next.js** algılanır, ayar değiştirmenize gerek yoktur. Depodaki `.npmrc` dosyası kurulumun sorunsuz geçmesini sağlar.
 3. **Environment Variables** bölümüne `.env.example` dosyasındaki değişkenleri girin:
