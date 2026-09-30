@@ -104,7 +104,8 @@ async function videosById(token: StoredToken, ids: string[]): Promise<Map<string
   for (const group of chunk(ids, 50)) {
     const data = await api<{ items: YtVideo[] }>(
       token,
-      `/videos?part=snippet,contentDetails&maxResults=50&id=${group.join(",")}`,
+      // Not: "id" ile birlikte "maxResults" gönderilirse API 400 (incompatibleParameters) döndürür.
+      `/videos?part=snippet,contentDetails&id=${group.join(",")}`,
     );
     for (const v of data.items) map.set(v.id, v);
   }

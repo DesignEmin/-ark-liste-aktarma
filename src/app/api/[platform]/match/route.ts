@@ -28,6 +28,7 @@ export const POST = route<PlatformContext>(async (req, ctx) => {
 
   const results: Array<MatchResult | null> = new Array(tracks.length).fill(null);
   let fatal: AppError | null = null;
+  let lastError: AppError | null = null;
   let next = 0;
 
   async function worker() {
@@ -37,7 +38,8 @@ export const POST = route<PlatformContext>(async (req, ctx) => {
         results[i] = await matchTrack(adapter, token, tracks[i]);
       } catch (err) {
         if (err instanceof AppError && FATAL.has(err.code)) fatal = err;
-        else if (!(err instanceof AppError)) console.error(err);
+        else if (err instanceof AppError) lastError = err;
+        else console.error(err);
         // Diğer hatalarda sonuç null kalır; istemci bu şarkıyı daha sonra yeniden dener.
       }
     }
@@ -45,7 +47,12 @@ export const POST = route<PlatformContext>(async (req, ctx) => {
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, tracks.length) }, worker));
 
   // TS, worker içindeki atamayı göremediği için tipi açıkça belirtiyoruz.
-  const f = fatal as AppError | null;
+  // Partideki hiçbir şarkı eşleştirilemediyse sorun büyük olasılıkla sistematiktir
+  // (yanlış istek, API kapalı vb.). Sessizce tekrar denemek yerine hatayı göster;
+  // aksi halde YouTube'da her deneme boşuna kota harcar.
+  const allFailed = results.every((r) => r === null);
+  const f = (fatal ?? (allFailed ? lastError : null)) as AppError | null;
+  if (f && !fatal) console.error(`[match] ${platform}: ${f.message}`);
   const error: ApiErrorBody["error"] | undefined = f
     ? { code: f.code, message: f.message, retryAfter: f.retryAfter }
     : undefined;
